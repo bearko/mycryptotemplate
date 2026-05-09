@@ -37,7 +37,7 @@ git clone https://github.com/bearko/mycryptoxxx
 cd mycryptoxxx
 ```
 
-> 💡 「Use this template」 ボタンが見えない場合: テンプレート repo の **Settings → General → Template repository** にチェックを入れると有効化されます (= 一度設定すれば以降の派生で再利用可能)。
+注: 「Use this template」 ボタンが見えない場合は、 テンプレート repo の **Settings → General → Template repository** にチェックを入れると有効化されます (= 一度設定すれば以降の派生で再利用可能)。
 
 (gh CLI で済ませる場合は `gh repo create bearko/mycryptoxxx --template bearko/mycryptotemplate --public --clone` でも可)
 
