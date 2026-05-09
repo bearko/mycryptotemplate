@@ -278,7 +278,7 @@ function closeSalaryReportModal() {
 ## 7. Save / Load (= 将来対応)
 
 ```js
-const SAVE_KEY = "<prefix>.save.v1";
+const SAVE_KEY = "mcs.save.v1";
 
 function serializeState() {
   return {

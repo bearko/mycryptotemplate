@@ -187,7 +187,7 @@ function checkMonthlyEvents() {
 - payload に `version` を含める (= 旧バージョンとの混在を識別)
 - `timestamp` は ISO 8601
 - POST body は `text/plain` (= CORS preflight 回避)
-- localStorage に `<prefix>.rankingApiUrl` で URL 上書き可能
+- localStorage に `mcs.rankingApiUrl` で URL 上書き可能
 
 ## 13. ドキュメントの書き方
 

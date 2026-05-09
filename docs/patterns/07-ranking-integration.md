@@ -15,8 +15,8 @@
 `js/ranking-client.js`:
 
 ```js
-const LS_API_URL = "<prefix>.rankingApiUrl";
-const LS_PLAYER_NAME = "<prefix>.playerName";
+const LS_API_URL = "mcs.rankingApiUrl";
+const LS_PLAYER_NAME = "mcs.playerName";
 
 const _DEFAULT_API_URL_ENC = "";   // ← deploy 後に btoa(...) で埋める
 

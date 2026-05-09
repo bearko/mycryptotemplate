@@ -53,7 +53,7 @@ const text = tmpl
 `js/i18n.js`:
 
 ```js
-const LANG_KEY = "<prefix>.lang";   // 例: "mcf.lang"
+const LANG_KEY = "mcs.lang";   // 例: "mcf.lang"
 const DEFAULT_LANG = "ja";
 
 let _lang = DEFAULT_LANG;
