@@ -2,8 +2,8 @@
 // constants.js — 共通定数 / アセット URL ヘルパ
 // ============================================================
 
-// ⚠ プロジェクトごとに上書きすること
-export const ASSET_BASE = "https://raw.githubusercontent.com/<user>/<asset-repo>/main/";
+// MyCryptoSurvivor 用アセット (= 別 repo)。 派生プロジェクトでは書き換える。
+export const ASSET_BASE = "https://raw.githubusercontent.com/bearko/MyCryptoSurvivor-assets/main/";
 
 // 同リポジトリ assets/ で済ませる場合:
 // export const ASSET_BASE = "./assets/";
@@ -37,7 +37,7 @@ export const MONTHS_PER_YEAR = 12;
 // ============================================================
 // localStorage キー (= prefix を統一)
 // ============================================================
-export const LS_PREFIX = "<prefix>";   // ⚠ プロジェクトごとに置換
+export const LS_PREFIX = "mcs";   // MyCryptoSurvivor
 export const LS_LANG = `${LS_PREFIX}.lang`;
 export const LS_PLAYER_NAME = `${LS_PREFIX}.playerName`;
 export const LS_RANKING_API_URL = `${LS_PREFIX}.rankingApiUrl`;

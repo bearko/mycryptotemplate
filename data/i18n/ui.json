@@ -1,23 +1,37 @@
 {
-  "splash.loading":      { "ja": "読み込み中…",       "en": "Loading…" },
+  "splash.loading":         { "ja": "読み込み中…",         "en": "Loading…" },
 
-  "lang.toggle.label":   { "ja": "言語 / Language",   "en": "Language / 言語" },
+  "lang.toggle.label":      { "ja": "言語 / Language",     "en": "Language / 言語" },
 
-  "title.subtitle":      { "ja": "サブタイトル",      "en": "Subtitle" },
-  "title.press":         { "ja": "Press to Start",   "en": "Press to Start" },
+  "title.subtitle":         { "ja": "ヒーローを操作して時間いっぱい生き残れ",
+                              "en": "Pilot your hero and survive to the end" },
+  "title.press":            { "ja": "Press to Start",     "en": "Press to Start" },
 
-  "stage.placeholder":   { "ja": "ここにゲーム本体を描画する",
-                           "en": "Game stage goes here" },
+  "stage.placeholder":      { "ja": "ここにゲーム本体を描画する",
+                              "en": "Game stage goes here" },
 
-  "btn.close":           { "ja": "閉じる",            "en": "Close" },
-  "btn.confirm":         { "ja": "確認",              "en": "Confirm" },
-  "btn.cancel":          { "ja": "キャンセル",        "en": "Cancel" },
-  "btn.proceed":         { "ja": "進む",              "en": "Proceed" },
-  "btn.back":            { "ja": "戻る",              "en": "Back" },
+  "home.welcome":           { "ja": "ヒーローを選んで出発しよう",
+                              "en": "Pick a hero and head out" },
+  "home.lead":              { "ja": "MyCryptoSurvivor は MCH ヒーローで遊ぶオートシューティング弾幕。 まずは相棒を選ぼう。",
+                              "en": "MyCryptoSurvivor is an auto-shooter bullet hell starring MCH heroes. First, pick a partner." },
+  "home.openHeroSelect":    { "ja": "ヒーローを選ぶ",      "en": "Choose a hero" },
 
-  "help.title":          { "ja": "ヘルプ",            "en": "Help" },
-  "help.body":           { "ja": "このゲームの遊び方は…",
-                           "en": "How to play this game…" },
-  "help.timeNote":       { "ja": "ホーム画面で待機している間のみ時間が進行します。",
-                           "en": "Time advances only while you wait on the home screen." }
+  "hero.selectTitle":       { "ja": "ヒーローを選ぶ",      "en": "Choose a hero" },
+  "hero.placeholderLabel":  { "ja": "プレースホルダ",      "en": "Placeholder" },
+  "hero.comingSoonNote":    { "ja": "※ Day 1 はプレースホルダ表示のみ。 SPEC-002 で本実装予定。",
+                              "en": "* Day 1 is placeholder-only. Real heroes land in SPEC-002." },
+  "hero.comingSoonToast":   { "ja": "Coming soon: SPEC-002 で本実装",
+                              "en": "Coming soon: real heroes land in SPEC-002" },
+
+  "btn.close":              { "ja": "閉じる",              "en": "Close" },
+  "btn.confirm":            { "ja": "確認",                "en": "Confirm" },
+  "btn.cancel":             { "ja": "キャンセル",          "en": "Cancel" },
+  "btn.proceed":            { "ja": "進む",                "en": "Proceed" },
+  "btn.back":               { "ja": "戻る",                "en": "Back" },
+
+  "help.title":             { "ja": "ヘルプ",              "en": "Help" },
+  "help.body":              { "ja": "ヒーローを選び、 ステージで 5 分間生き残ろう。 敵を倒すと経験値とエクステンションが手に入る。",
+                              "en": "Choose a hero and survive 5 minutes in the stage. Defeated enemies drop XP and extensions." },
+  "help.timeNote":          { "ja": "メニューやモーダルを開いている間は時間が止まります。",
+                              "en": "Time pauses while menus or modals are open." }
 }

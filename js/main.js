@@ -3,13 +3,15 @@
 // ============================================================
 
 import { state, pauseTime, resumeTime } from "./state.js";
-import { initI18n, setLang, getLang, applyDataI18n } from "./i18n.js";
+import { initI18n, setLang, getLang, applyDataI18n, t } from "./i18n.js";
 import {
   TICK_INTERVAL_MS,
   SECONDS_PER_WEEK,
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
 } from "./constants.js";
+
+const HERO_PLACEHOLDER_COUNT = 10;
 
 // ============================================================
 // DOM helpers
@@ -34,6 +36,7 @@ async function init() {
   setupTitleScreen();
   setupHelpOverlay();
   setupLangToggle();
+  setupHeroSelectStub();
 
   // タイトル画面表示中は時間が進むが、 onTick は state.activeXxx が無いので何も起きない
   startTimeLoop();
@@ -111,6 +114,83 @@ function closeHelp() {
   $("#helpOverlay")?.classList.add("hidden");
   document.body.style.overflow = "";
   resumeTime();
+}
+
+// ============================================================
+// Hero select stub (= Day 1 mock, SPEC-001)
+// ============================================================
+function setupHeroSelectStub() {
+  $("#btnOpenHeroSelect")?.addEventListener("click", openHeroSelect);
+  $("#btnHeroSelectClose")?.addEventListener("click", closeHeroSelect);
+
+  const modal = $("#heroSelectModal");
+  modal?.addEventListener("click", (e) => {
+    if (e.target.id === "heroSelectModal") closeHeroSelect();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) {
+      closeHeroSelect();
+    }
+  });
+}
+
+function openHeroSelect() {
+  pauseTime();
+  $("#heroSelectModal")?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  renderHeroSelectStub();
+}
+
+function closeHeroSelect() {
+  $("#heroSelectModal")?.classList.add("hidden");
+  document.body.style.overflow = "";
+  resumeTime();
+}
+
+function renderHeroSelectStub() {
+  const grid = $("#heroGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  const label = t("hero.placeholderLabel");
+  for (let i = 1; i <= HERO_PLACEHOLDER_COUNT; i++) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "hero-tile";
+    btn.dataset.heroIdx = String(i);
+    btn.setAttribute("aria-label", `${label} #${String(i).padStart(2, "0")}`);
+
+    const num = document.createElement("span");
+    num.className = "hero-tile__num";
+    num.textContent = `#${String(i).padStart(2, "0")}`;
+
+    const lbl = document.createElement("span");
+    lbl.className = "hero-tile__label";
+    lbl.textContent = label;
+
+    btn.appendChild(num);
+    btn.appendChild(lbl);
+    btn.addEventListener("click", () => pickHeroPlaceholder(i));
+    grid.appendChild(btn);
+  }
+}
+
+function pickHeroPlaceholder(idx) {
+  showStubToast(t("hero.comingSoonToast"));
+}
+
+// ============================================================
+// Notifications (= ephemeral toast in #notifLayer)
+// ============================================================
+const NOTIF_TTL_MS = 2400;
+
+function showStubToast(message) {
+  const layer = $("#notifLayer");
+  if (!layer) return;
+  const tile = document.createElement("div");
+  tile.className = "notification";
+  tile.textContent = message;
+  layer.appendChild(tile);
+  setTimeout(() => tile.remove(), NOTIF_TTL_MS);
 }
 
 // ============================================================
