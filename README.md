@@ -25,33 +25,180 @@ MyCryptoTactics (PvP 戦術カード) と MyCryptoFactory (経営シム) の 2 �
 
 ## クイックスタート
 
-### 1. このテンプレートからプロジェクトを作る
+### 1. このテンプレートからプロジェクトを作る (= GitHub UI 推奨)
+
+1. GitHub で https://github.com/bearko/mycryptotemplate を開く
+2. リポジトリ TOP の緑の **「Use this template」 → 「Create a new repository」** をクリック
+3. Owner: `bearko` (= またはあなたのアカウント) / Repository name: `mycryptoxxx` / Public で作成
+4. 作成したリポジトリをローカルにクローン
 
 ```bash
-# Use this template ボタンから新リポジトリを作成 (GitHub UI)
-# またはローカルで:
-gh repo create my-new-game --template bearko/mycryptotemplate --public
-git clone https://github.com/<you>/my-new-game
-cd my-new-game
+git clone https://github.com/bearko/mycryptoxxx
+cd mycryptoxxx
 ```
 
-### 2. 識別子をリネーム
+> 💡 「Use this template」 ボタンが見えない場合: テンプレート repo の **Settings → General → Template repository** にチェックを入れると有効化されます (= 一度設定すれば以降の派生で再利用可能)。
 
-`docs/setup/new-project.md` の手順に従って以下をプロジェクト名に置換:
-- `localStorage` キー prefix (`mct.*` → `<your-prefix>.*`)
-- `<title>` / og:title / footer
-- `data-i18n` の値は基本そのまま再利用可
+(gh CLI で済ませる場合は `gh repo create bearko/mycryptoxxx --template bearko/mycryptotemplate --public --clone` でも可)
 
-### 3. Claude Code で開発開始
+### 2. Claude Code 新セッションを開く (= MCP スコープ切替)
 
-```bash
-claude
-> このプロジェクトの CLAUDE.md と docs/charters/PROJECT_CHARTER.md を読んで、
-> 最初の SPEC (= docs/specs/SPEC-001-...) を一緒に書いて。
-```
+1. Claude Code (Web もしくは CLI) を起動
+2. **GitHub MCP の接続先を、 さっきコピーした新リポジトリ (`bearko/mycryptoxxx`) に切替**
+   - (= テンプレート repo のままだと PR / push 先がテンプレートに行ってしまうので必須)
+3. 新セッションで、 下記の **「Day 1 Project Kickoff プロンプト」** に必要事項 (= プロジェクト名 / ジャンル / 必須機能 等) を埋めて投下
 
-Claude が CLAUDE.md → AGENTS.md → docs/charters → docs/patterns の順に読み込み、
-本テンプレートが規定する設計規則の中で実装を進めます。
+Claude が CLAUDE.md → AGENTS.md → docs/charters → docs/patterns の順に読み込み、 本テンプレートが規定する設計規則の中で実装を進めます。 識別子リネームや i18n 初期化、 Day 1 モック実装、 SPEC-001 起票までを 1 セッションで完了します。
+
+### 3. Day 1 Project Kickoff プロンプト (= コピペして `<FILL: ...>` を埋める)
+
+````markdown
+# Day 1 Project Kickoff — <FILL: PROJECT_NAME>
+
+私は `mycryptotemplate` をベースに新規ゲームプロジェクトを立ち上げます。
+あなたは私のペアプロパートナーとして、 以下の手順で **Day 1 のモック** を構築してください。
+
+---
+
+## ⚠ 最重要 — 着手前に必ず読むこと
+
+以下のドキュメントを **この順序で** 読み、 それに従って作業してください。
+まだ読んでいない状態で実装を始めないでください。
+
+1. `README.md`
+2. `CLAUDE.md`(= 命名規則・規約・必読リスト)
+3. `AGENTS.md`(= Sub-agent 活用ガイド・HITL ルール)
+4. `docs/charters/PROJECT_CHARTER.md`(= テンプレート、 これから埋める)
+5. `docs/charters/DEVELOPMENT_CHARTER.md`
+6. `docs/charters/DESIGN_CHARTER.md`
+7. `docs/patterns/01-environment-and-assets.md`
+8. `docs/patterns/02-screen-structure.md`
+9. `docs/patterns/03-i18n-and-help.md`
+10. `docs/patterns/04-time-and-modals.md`(= pauseFlags パターン必読)
+11. `docs/process/SPEC_DRIVEN_DEVELOPMENT.md`
+12. `docs/setup/new-project.md`
+
+**複数ファイルの読み込みは `Explore` sub-agent に依頼して、 要約だけ受け取ってください**(= context 節約)。
+
+---
+
+## 1. プロジェクト基本情報
+
+- **プロジェクト名**: <FILL: 例 MyCryptoQuest>
+- **タグライン (1行)**: <FILL: 例 マイクリヒーローと挑むダンジョン経営>
+- **ジャンル**: <FILL: 例 タワーディフェンス + 経営シム>
+- **参考タイトル**: <FILL: 例 Slay the Spire / Loop Hero / マイクリ既存タイトル>
+- **コアゲームループ (3文)**:
+  <FILL:
+  1. プレイヤーは○○する
+  2. その結果○○が起きる
+  3. それを使って○○を強化する
+  >
+- **対象プラットフォーム**: <FILL: PC + Mobile / PC のみ>
+- **対応言語**: <FILL: JP のみ / JP+EN>
+- **ビジュアルトーン**: <FILL: 例 ダークファンタジー / ポップ / ピクセル / ミニマル>
+
+## 2. 機能スコープ
+
+### 必須機能(= MVP に含む、 3〜5個)
+- <FILL: 機能1>
+- <FILL: 機能2>
+- <FILL: 機能3>
+
+### 仕組み採否
+- 時間進行 (= ホーム画面で待機中のみ tick): <FILL: YES / NO>
+- ランキング (= GAS+Spreadsheet): <FILL: YES / NO / 後で>
+- 多言語切替: <FILL: JP only / JP+EN>
+- セーブ/ロード: <FILL: YES / NO / 後で>
+- 月次イベント (= 年単位ループ): <FILL: YES / NO>
+- 並列スロット (= MCF の並列クラフト的): <FILL: YES / NO>
+
+### 非ゴール(= MVP では作らない)
+- <FILL: やらないこと1>
+- <FILL: やらないこと2>
+
+## 3. 技術設定
+
+- **localStorage prefix**: <FILL: 例 mcq>(= 3〜5文字、 他作品とぶつからないもの)
+- **アセットCDN**: <FILL: ./assets/ または https://raw.githubusercontent.com/.../main/>
+- **GitHubリポジトリ**: <FILL: bearko/mycryptoxxx>
+- **ローカル作業パス**: <FILL: 例 C:\dev\mycryptoxxx>
+
+## 4. ターゲット体験(= プレイヤーが最初の60秒で得る感覚)
+
+<FILL:
+例 タイトルを開く → Press to Start → ホーム画面で施設タイル3つ + ヒーローパネル
+→ 最初のヒーロー獲得チュートリアル発火 → ダンジョン1階に挑戦できる
+>
+
+---
+
+## 5. Day 1 の到達点
+
+以下を満たすモックを作ってください。
+
+- [ ] `index.html` をブラウザで開いて Console エラーなく表示
+- [ ] Splash → Title → Home画面 の遷移
+- [ ] JP/EN 切替が動く(必要な場合)
+- [ ] ヘッダー + 時間表示 + ヘルプボタン
+- [ ] モーダル1つ以上を pause/resume パターン通りに開閉(= ヘルプ可)
+- [ ] **必須機能のうち少なくとも1つの "見た目だけのスタブ"** が存在(= ボタン押下で空モーダル等でOK)
+- [ ] PC(1280×800)+ Mobile(375×667)両方で破綻しない
+- [ ] `specs/SPEC-001-project-setup.md` 作成、 ステータス Done
+
+## 6. 進め方
+
+1. **必読ドキュメントを読む**(上記順序、 `Explore` agent 推奨)
+2. **AskUserQuestion で曖昧な点を確認**(例:「タイトルロゴはプレースホルダで良いか?」)
+3. **`<prefix>` を一括置換**(= 上記指定の prefix で)
+4. **`docs/charters/PROJECT_CHARTER.md` を埋める**(= 上記情報ベース)
+5. **`specs/SPEC-001-project-setup.md` を作成**(= テストケース付き)
+6. **Phase 1 PR**: タイトル + i18n + ホーム骨組み(= "Day 1 モック")を `feat/spec-001-phase-1-bootstrap` ブランチで draft PR 化
+7. **次のSPEC-002の骨子だけ提示**(= Phase 2着手は私が GO を出してから)
+
+## 7. 守ってほしい事項(= 規約)
+
+- `CLAUDE.md` の命名規則(動詞prefix: trigger/open/close/render/pick/apply/find/get/set/tick/is)
+- `pauseFlags` パターン(= `docs/patterns/04-time-and-modals.md`)厳守
+- 1 PR = 1 論理変更、 Phase 分割
+- **main / prod に直push禁止**、 必ず feature ブランチ + PR
+- `console.log` / TODO 残しは commit 前に削除
+- DEBUG_* フラグで囲んだログ以外は出さない
+- `ASSET_BASE` / `img()` / `audioUrl()` を `js/constants.js` に集約
+- 画像/音声のフォールバック(= ロード失敗で真っ白にしない)を必ず入れる
+- Conventional Commits + Phase tag(例 `feat(spec-001): Phase 1 — Bootstrap title screen`)
+- 共著者として `Co-Authored-By: Claude ...` をコミットメッセージに付ける
+
+## 8. 質問してほしいタイミング(= 推測しないで)
+
+以下のいずれかなら **必ず AskUserQuestion で確認**、 勝手に決めないでください:
+
+- 必須機能の挙動が私の文章から1通りに定まらない
+- ビジュアル/UIで複数解釈が成立する
+- アセット(= 画像/音声)の入手元・既存パスが不明
+- 規約違反になる可能性のある実装判断
+- 私が指定していない技術的選択(例: フォーム validation の有無)
+
+## 9. context 節約のお願い
+
+- ファイル全文 Read は避ける、 必要なら `offset/limit` で部分読み
+- 5ファイル以上の探索は **Explore agent** に依頼(= 結果サマリだけ受け取る)
+- 設計を固める段階では **Plan agent** を一回呼ぶ
+- 実装中の console 出力は要約で持ち帰る(= 200行超 paste しない)
+- 大量ログは Grep の `head_limit` / `pattern` で絞ってから読む
+
+## 10. 成果物(= 1セッション完了時に揃っているべきもの)
+
+- [ ] `PROJECT_CHARTER.md` 埋まっている
+- [ ] `specs/SPEC-001-project-setup.md` ステータス Done
+- [ ] Phase 1 PR が draft で上がっている(= 私がレビューして merge)
+- [ ] 次の `SPEC-002-<feature>.md` の見出しと骨子だけ提示
+- [ ] Vercel preview URL を私が手動で確認できる状態(= vercel link 済み前提)
+
+それでは、 **まず必読ドキュメントを `Explore` で読んで、 その後に基本情報の認識合わせの質問** から始めてください。
+````
+
+(= プロンプト本文は `<FILL: ...>` を全て置換してから投下してください。 識別子リネーム / i18n / Day 1 モック / SPEC-001 までを Claude が自走します)
 
 ## ディレクトリ構造
 
