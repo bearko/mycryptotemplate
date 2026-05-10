@@ -1,10 +1,23 @@
 // ============================================================
-// ranking-client.js — Google Apps Script ランキング API
+// ranking-client.js — ランキング API クライアント (= Backend A / B 共通)
+// ============================================================
+//
+// このクライアントは backend-agnostic。 同じ API 契約 (POST/GET +
+// {ok, ranking, error}) を満たすサーバーなら、 URL 差し替えだけで両方で動く。
+// 詳細は docs/process/RANKING_SETUP.md を参照。
+//
+// 既定 (= Backend B / Upstash + Vercel Function) で派生を作る場合:
+//   const _DEFAULT_API_URL_ENC = "L2FwaS9yYW5raW5n";   // = btoa("/api/ranking")
+//
+// 代替 (= Backend A / Google Apps Script) で派生を作る場合:
+//   const _DEFAULT_API_URL_ENC = "<btoa('https://script.google.com/macros/s/.../exec')>";
+//
+// テンプレート本体は **空文字のまま** にしておくこと (= 派生で書き換える前提、
+// サンプル URL を残すと全派生がそこに POST してしまう)。
 // ============================================================
 
 import { LS_RANKING_API_URL, LS_PLAYER_NAME } from "./constants.js";
 
-// ⚠ デプロイ後、 btoa("https://script.google.com/macros/s/.../exec") で base64 化して埋め込む
 const _DEFAULT_API_URL_ENC = "";
 
 function _decodeDefault() {
