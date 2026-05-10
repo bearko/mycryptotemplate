@@ -30,9 +30,15 @@ export function setRankingApiUrl(url) {
   } catch (e) {}
 }
 
+// 未設定時は "anonymous" を返す (= 名前欄を空のまま送信しても弾かれない)。
+// 詳細: docs/process/RANKING_SETUP.md 3 章 + survivor SPEC-038。
+const DEFAULT_PLAYER_NAME = "anonymous";
+
 export function getPlayerName() {
-  try { return localStorage.getItem(LS_PLAYER_NAME) || ""; }
-  catch (e) { return ""; }
+  try {
+    const v = localStorage.getItem(LS_PLAYER_NAME);
+    return (v && v.trim()) ? v : DEFAULT_PLAYER_NAME;
+  } catch (e) { return DEFAULT_PLAYER_NAME; }
 }
 
 export function setPlayerName(name) {

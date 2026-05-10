@@ -152,6 +152,28 @@ function closeMyModal() {
 5. PR には **テスト計画** を Test plan セクションで記載
 6. ユーザーがマージ → Claude は次タスクへ
 
+### PR で触るファイル / 触らないファイル (= SPEC-001 で導入)
+
+並列 PR の衝突を構造的に避けるため、 一覧ファイル (= SPEC-INDEX / CHANGELOG)
+を直接編集せず、 SPEC ごとの「自分専用ファイル」 だけを触る運用にする。
+
+**触る (= 自分の SPEC 専用)**
+
+- `docs/specs/SPEC-NNN-<topic>.md` — YAML frontmatter + 本文を新規作成
+- `docs/changelog/SPEC-NNN.md` — bullet list の fragment を新規作成
+- 実装ファイル (`js/...` `css/...` `data/...` 等)
+
+**触らない (= 自動生成区間)**
+
+- `docs/specs/SPEC-INDEX.md` の `<!-- BEGIN AUTO-INDEX -->` ... `<!-- END AUTO-INDEX -->` 区間
+- `CHANGELOG.md` の `<!-- BEGIN AUTO-UNRELEASED -->` ... `<!-- END AUTO-UNRELEASED -->` 区間
+
+両ファイルは `node tools/build-spec-index.mjs` / `node tools/build-changelog.mjs`
+で再生成する (= 純 Node ESM、 依存なし)。 マージ後に Claude / メンテナーが
+定期的に走らせ、 1 行 PR としてコミットする。
+
+詳細: `docs/process/SPEC_DRIVEN_DEVELOPMENT.md` 11 章
+
 ## デバッグの際のチェックリスト
 
 - 「時間が止まる/止まらない」 → `pauseFlags` の counter を console.log で確認
