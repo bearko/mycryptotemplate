@@ -1,8 +1,36 @@
-# Ranking Backend Setup (Google Apps Script)
+# Ranking Backend Setup
 
-派生プロジェクトでランキング機能を有効化するための手順。 **Google Apps Script
-(GAS) Web App + Google Spreadsheet** をサーバーレスバックエンドとして使う。
-完全無料、 個人プロジェクト用途。
+派生プロジェクトでランキング機能を有効化するための手順。 **2 系統のバックエンド**
+を提供しており、 用途に応じて選択する。 クライアント (`js/ranking-client.js`)
+は **両方とも同じ API 契約** (= POST/GET + `{ok, ranking, error}`) を期待
+するので、 サーバー側を差し替えても **コード変更なし** で動く。
+
+## 0. バックエンドの選択肢
+
+| 観点 | **Backend A** — GAS + Spreadsheet | **Backend B** — Upstash Redis + Vercel Function |
+|---|---|---|
+| デプロイ先 | Google Apps Script (= 無料) | Vercel Functions + Upstash (= 無料枠あり) |
+| ストレージ | Google Spreadsheet | Upstash Redis (= Sorted Set) |
+| 必要なアカウント | Google | Vercel + Upstash (= Vercel Marketplace から一括取得可) |
+| デプロイ手順の重さ | ノーコード寄り (= GAS エディタ + ブラウザ操作のみ) | git push 連携 (= Vercel が自動 deploy) |
+| 静的ホスティング純度 | 純静的のまま (= フロントだけリポジトリ) | `api/ranking.js` を 1 ファイル追加するが `package.json` 不要 |
+| レイテンシ | ~ 数百ms (= GAS warm-up あり) | ~ 数十ms (= Redis インメモリ) |
+| 管理 UI | Spreadsheet を直接眺められる | Upstash console + Vercel logs |
+| 同時書き込み耐性 | △ (= シート write contention) | ○ (= Redis ZADD はアトミック) |
+| 無料枠 | 実質無制限 (= 個人用途) | Upstash: 10k commands/day 程度 (= 個人ランキングなら十分) |
+| **既定** | **(= テンプレートデフォルト)** | (= 派生で本格運用する場合に切替) |
+
+選び方の目安:
+- **数十人規模 / 個人ランキング** → Backend A (= 手軽、 Spreadsheet で見られる)
+- **数百人以上 / レイテンシ気にする / Vercel に置いてるなら統合したい** → Backend B
+- **両方の手順を読んでから判断したい** → 全章スキャン推奨
+
+---
+
+# Backend A — Google Apps Script + Spreadsheet (= default)
+
+**Google Apps Script (GAS) Web App + Google Spreadsheet** をサーバーレス
+バックエンドとして使う。 完全無料、 個人プロジェクト用途。
 
 (= 既存解説 `docs/setup/google-apps-script.md` がデプロイ手順の汎用版。 本書は
 ランキング用テーブル定義 / クライアント結線 / サンプルデータ投入まで含む
@@ -194,3 +222,215 @@ GAS エディタから手動実行できる関数を 3 つ提供しています:
 - 既存実装: `js/ranking-client.js` (= submit/fetch のクライアント)
 - 既存ガイド: `docs/setup/google-apps-script.md` (= GAS デプロイの汎用解説)
 - 既存パターン: `docs/patterns/07-ranking-integration.md` (= 設計の経緯 + 諸 hazard)
+
+---
+
+# Backend B — Upstash Redis + Vercel Function (= 高速・本格運用向け)
+
+Vercel に既にホストしているなら、 同じ Vercel project 内の **Serverless
+Function** (`api/ranking.js`) でランキング API を立てるのがシームレス。
+バックエンドストレージは **Upstash Redis** (= Sorted Set がランキングそのもの)
+を使うと ZADD / ZREVRANGE が 1 コマンドで済むので実装が短い。
+
+## 11. Backend B 全体構成
+
+```
+[ブラウザ]                          [Vercel Function]              [Upstash Redis]
+js/ranking-client.js   ──POST──▶  /api/ranking (Node serverless)  ──ZADD──▶
+                       ──GET───▶  /api/ranking?limit=20           ──ZREVRANGE──▶
+                       ◀──JSON─                                   ◀─ member JSON list
+```
+
+- **フロント**: `js/ranking-client.js` 変更不要 (= `submitScore` / `fetchRanking`
+  はそのまま使える、 API URL を変えるだけ)
+- **API URL**: 同一オリジンの `/api/ranking` を localStorage または
+  `_DEFAULT_API_URL_ENC` に入れる (= `btoa("/api/ranking")` = `"L2FwaS9yYW5raW5n"`)
+- **サーバー**: `tools/vercel-ranking.js` を `api/ranking.js` にコピーすると
+  Vercel が自動で serverless function として deploy
+- **バックエンド**: Upstash Redis を **REST API 経由** で叩く (= `@upstash/redis`
+  SDK は使わない、 純 `fetch` のみ → **`package.json` 不要**)
+- **依存**: なし (= Node 18+ の標準 `fetch` と環境変数だけ)
+
+## 12. Backend B デプロイ手順 (= 10 分)
+
+### 12.1 Upstash Redis を作る
+
+**(推奨) Vercel Marketplace 経由**:
+
+1. Vercel ダッシュボード → 対象 project → **Storage** タブ
+2. **Create Database** → **Marketplace Database Providers** → **Upstash for Redis**
+3. プラン: **Free** (= 個人ランキング用途なら十分)
+4. リージョン: ホストするユーザーに近いもの (= 日本ユーザーなら ap-northeast-1)
+5. **Create** ボタン → Vercel project に **自動的に環境変数が注入** される
+   (= `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`)
+
+**(代替) Upstash 直接**:
+
+1. <https://console.upstash.com/> でサインアップ → **Create Database**
+2. 表示される `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` を控える
+3. Vercel project の **Settings → Environment Variables** に手動登録
+
+### 12.2 `api/ranking.js` を repo に追加
+
+リポジトリ ルートに `api/` ディレクトリを作り、 `tools/vercel-ranking.js` を
+**`api/ranking.js`** という名前でコピー (= ファイル名がそのまま URL path になる)。
+
+```bash
+mkdir -p api
+cp tools/vercel-ranking.js api/ranking.js
+git add api/ranking.js
+git commit -m "feat(ranking): Enable Backend B (Upstash on Vercel)"
+```
+
+(= テンプレート自体には `api/ranking.js` を入れない。 派生プロジェクトで
+コピーしないと Vercel が空 endpoint を露出してしまうため)
+
+### 12.3 git push → Vercel が自動 deploy
+
+Vercel project が repo を連携済みであれば、 push しただけで:
+
+1. 静的フロントは従来通り CDN にデプロイ
+2. `api/*.js` は **Node 18+ runtime の serverless function** として deploy
+3. 環境変数 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` は
+   12.1 で自動 / 手動注入したものが function 起動時に注入される
+
+### 12.4 動作確認
+
+ブラウザで `https://<your-project>.vercel.app/api/ranking?limit=5` を開く →
+`{"ok":true,"ranking":[]}` が返れば成功。
+
+POST 動作は `curl` で:
+
+```bash
+curl -X POST https://<your-project>.vercel.app/api/ranking \
+  -H "Content-Type: text/plain;charset=utf-8" \
+  -d '{"playerName":"alice","score":12345,"version":"0.1.0","regulation":"NORMAL"}'
+```
+
+`{"ok":true}` が返ったら、 直後の GET で 1 件入っているはず。
+
+### 12.5 ゲームに URL を設定
+
+同一オリジン (= フロントと Vercel Function が同じドメイン) なら相対パス
+`"/api/ranking"` を使うのが最も簡単:
+
+```js
+localStorage.setItem("<prefix>.rankingApiUrl", "/api/ranking");
+```
+
+または `js/ranking-client.js` に `btoa("/api/ranking")` の結果を埋め込み:
+
+```js
+// js/ranking-client.js
+const _DEFAULT_API_URL_ENC = "L2FwaS9yYW5raW5n";   // = "/api/ranking"
+```
+
+**クロスオリジン** (= フロントは GitHub Pages、 API だけ Vercel 等) の場合は
+完全 URL `"https://<project>.vercel.app/api/ranking"` を使う。 Function 側で
+`Access-Control-Allow-Origin: *` を返しているので CORS は通る。
+
+## 13. Backend B のデータ構造 (= Redis Sorted Set)
+
+| Redis key | 型 | 内容 |
+|---|---|---|
+| `ranking:<version>:<regulation>` | Sorted Set | score 順のメンバー集合 (= 1 ラン 1 メンバー) |
+
+- **score** (= Sorted Set の数値): そのまま整数スコア
+- **member** (= Sorted Set のユニークキー): エントリ全体を JSON 化した文字列
+
+メンバー JSON のフィールド:
+
+```json
+{
+  "playerName": "bearko",
+  "score": 12345,
+  "level": 27,
+  "kills": 412,
+  "hero": "コナン・ドイル",
+  "faction": "SEIRYU",
+  "version": "0.1.0",
+  "elapsedSec": 412,
+  "regulation": "NORMAL",
+  "regulationMul": 1.0,
+  "timestamp": "2026-05-10T12:34:56.789Z",
+  "nonce": "k3p9m2x7"
+}
+```
+
+- `nonce` は **同一スコア重複を回避** するための短いランダム文字列
+  (= Sorted Set はメンバー一意制約があるため、 全フィールドが同じ 2 ランで
+  片方が消えないようにする)
+- GET レスポンスでは `nonce` を **削除して返す** (= クライアントには露出しない)
+
+### key 戦略
+
+- `version` と `regulation` で **物理的に分離** する (= フィルタが ZREVRANGE 1 発で済む)
+- 全 version 横断クエリ (= `?regulation=NORMAL` のみ) は `SCAN MATCH ranking:*:NORMAL`
+  でキー列挙 → 各キーから先頭 N 件取得 → メモリ上で score 降順マージ
+- ランキングが肥大化したら `ZCARD` + `ZREMRANGEBYRANK 0 (size - cap - 1)` で
+  **上位 N 件だけ残す** (= 既定 1000 件)
+
+## 14. ゲームに URL を設定
+
+Backend A の 3 章と同じ 3 通り。 Backend B の場合は **相対パス `/api/ranking`**
+が使える分シンプル。 詳細は 12.5 参照。
+
+## 15. Backend B の不正対策
+
+匿名 POST 可能なので、 必要に応じて追加 (= `tools/vercel-ranking.js` に
+既に実装済 / コメントアウトで雛形済の項目):
+
+- **score 上限** (= 実装済): `MAX_SCORE = 1_000_000` を超えたら 400 を返す
+- **ペイロード上限** (= 実装済): `playerName` 30 文字 / `hero` 60 文字等で切詰め
+- **メンバー上限** (= 実装済): `ZCARD` 監視で上位 1000 件のみ保持
+- **rate limit** (= 雛形): `INCR rate:<ip>` + `EXPIRE rate:<ip> 60` で 60 秒
+  N 回まで。 `X-Forwarded-For` ヘッダから IP を取る (= Vercel が付与)
+- **HMAC**: 静的サイトでは secret を埋めにくいので obfuscation 程度
+  (= Backend A と同じ判断)
+
+個人プロジェクトでは **score 上限 + rate limit** で運用するのが現実的。
+
+## 16. Backend B のテスト用サンプルデータ投入
+
+GAS のような 「エディタから関数を実行」 機能はないので、 **ローカルから curl
+を回す** のが一番楽。 `tools/seed-vercel.sh` のような sh を派生で起こすと良い。
+
+最小のシード例:
+
+```bash
+API=https://<your-project>.vercel.app/api/ranking
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  curl -s -X POST "$API" \
+    -H "Content-Type: text/plain;charset=utf-8" \
+    -d "{\"playerName\":\"player$i\",\"score\":$((30000 - i * 1800 + RANDOM % 1500)),\"level\":$((30 - i)),\"kills\":$((420 - i * 30)),\"hero\":\"コナン・ドイル\",\"faction\":\"SEIRYU\",\"version\":\"0.1.0\",\"elapsedSec\":$((400 + i * 10)),\"regulation\":\"NORMAL\",\"regulationMul\":1.0}"
+done
+
+curl -s "$API?limit=20" | python3 -m json.tool
+```
+
+(= 12 件投入 → 上位 20 件取得して整形表示)
+
+ヒーロー名は MCH 公式名 (= `https://github.com/bearko/mycryptoheroes` の
+データベース) から引いて使うこと。 オリジナル名称は禁止
+(= `CLAUDE.md` の MCH 経済圏の遵守 を参照)。
+
+### 全消し
+
+Redis CLI 相当を Upstash console (= web UI) から叩ける:
+
+```
+DEL ranking:0.1.0:NORMAL
+```
+
+または `tools/vercel-ranking.js` に **管理エンドポイント** を足す
+(= `POST /api/ranking?action=clear&adminKey=<secret>`) のもアリ。 雛形は
+コメントとして同ファイル末尾に残してある。
+
+## 17. 参考リンク (= Backend B)
+
+- Vercel Functions: <https://vercel.com/docs/functions>
+- Upstash Redis REST API: <https://upstash.com/docs/redis/features/restapi>
+- Upstash for Vercel Marketplace: <https://vercel.com/marketplace/upstash>
+- Redis Sorted Sets: <https://redis.io/docs/data-types/sorted-sets/>
+- リファレンス Function: `tools/vercel-ranking.js` (= 派生で `api/ranking.js` にコピー)
