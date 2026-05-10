@@ -107,7 +107,7 @@ Claude が CLAUDE.md → AGENTS.md → docs/charters → docs/patterns の順に
 
 ### 仕組み採否
 - 時間進行 (= ホーム画面で待機中のみ tick): <FILL: YES / NO>
-- ランキング (= GAS+Spreadsheet): <FILL: YES / NO / 後で>
+- ランキング (= 既定 = Upstash + Vercel / 代替 = GAS): <FILL: YES (default backend = Upstash) / YES (GAS で実装) / NO / 後で>
 - 多言語切替: <FILL: JP only / JP+EN>
 - セーブ/ロード: <FILL: YES / NO / 後で>
 - 月次イベント (= 年単位ループ): <FILL: YES / NO>

@@ -76,6 +76,48 @@
 - **絵文字を出力に含める** (= UI / ドキュメント / コミットメッセージ / Claude の応答すべて。 ユーザーから明示的に絵文字使用を指示された場合のみ可)
 - **MCH の名称規約から逸脱したオリジナル用語を作る** (= 「コイン」 「EXP」 「アイテム」 等。 上の MCH 経済圏の遵守 を参照)
 
+## ランキング機能の実装方針 (= 派生プロジェクトでのデフォルト)
+
+派生プロジェクトでランキング機能を実装する場合、 **特別な指示が無い限り
+Backend B (= Upstash Redis + Vercel Function)** を選択すること。 詳細は
+`docs/process/RANKING_SETUP.md` の 0 章 (= 比較表) と 1〜7 章 (= Backend B) を参照。
+
+### 着手時の振る舞い
+
+ユーザーが 「ランキング機能を追加したい」 「スコア送信を入れたい」 等を言ったら、
+Claude は **以下の順** で進めること:
+
+1. **AskUserQuestion で backend を確認** (= 既定推奨を提示):
+   - 選択肢 A: **Backend B (Upstash + Vercel)** (Recommended)
+   - 選択肢 B: Backend A (GAS + Spreadsheet) (= Vercel を使わない場合)
+   - 選択肢 C: 後で決める (= スタブだけ入れて URL 未設定で開始)
+2. **Backend B を選ばれた場合**、 Vercel + Upstash の設定手順を **ユーザーに 1 ステップずつ
+   提示** し、 各 step の完了を AskUserQuestion で確認しながら進める:
+   - **Step 1**: Vercel ダッシュボード → 対象 project → **Storage** タブ →
+     **Create Database** → **Marketplace Database Providers** → **Upstash for Redis**
+     を選択 (= Free プラン、 リージョンは日本ユーザーなら ap-northeast-1)
+   - **Step 2**: 作成すると環境変数 `UPSTASH_REDIS_REST_URL` /
+     `UPSTASH_REDIS_REST_TOKEN` が **自動注入** される (= Vercel project の
+     Settings → Environment Variables で確認可能)
+   - **Step 3**: ローカル repo で `mkdir -p api && cp tools/vercel-ranking.js api/ranking.js`
+     を実行し、 `git add api/ranking.js && git commit` でコミット
+   - **Step 4**: `git push` → Vercel が自動 deploy (= 静的フロントは CDN、
+     `api/*.js` は Node 18+ serverless function として展開)
+   - **Step 5**: 動作確認: ブラウザで
+     `https://<project>.vercel.app/api/ranking?limit=5` を開き
+     `{"ok":true,"ranking":[]}` が返ることを確認
+   - **Step 6**: クライアントの URL 設定: `js/ranking-client.js` の
+     `_DEFAULT_API_URL_ENC` に `"L2FwaS9yYW5raW5n"` (= `btoa("/api/ranking")`)
+     を埋め込むか、 ユーザーの DevTools で
+     `localStorage.setItem("<prefix>.rankingApiUrl", "/api/ranking")` を実行
+3. **Backend A を選ばれた場合** は `docs/process/RANKING_SETUP.md` の 8〜17 章
+   (= Backend A) を参照しながら GAS デプロイ手順をユーザーに提示
+4. **後で決める** を選ばれた場合は SPEC に 「ranking: 未決」 を記述し、
+   `_DEFAULT_API_URL_ENC = ""` のままで UI のスタブだけ入れる
+
+(= この振る舞いは新セッション開始時にユーザーが明示的に override しない限り
+適用される。 派生プロジェクトの CLAUDE.md で上書きすることも可)
+
 ## 作法 (= 暗黙の了解)
 
 詳細は `docs/charters/DEVELOPMENT_CHARTER.md` を参照。 要点だけ:
